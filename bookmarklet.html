@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile Bookmarklet — Shabdah</title>
+  <meta name="description" content="Install the Shabdah bookmarklet for quick word lookups on any mobile browser.">
+
+  <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..800,0..100,0..1;1,9..144,400..800,0..100,0..1&family=Inter:opsz,wght@14..32,400..800&family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- SEO -->
+  <link rel="canonical" href="https://shabdah.app/bookmarklet.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Shabdah">
+  <meta property="og:url" content="https://shabdah.app/bookmarklet.html">
+  <meta property="og:title" content="Mobile Bookmarklet — Shabdah">
+  <meta property="og:description" content="Install the bookmarklet for quick word lookups on mobile.">
+  <meta property="og:image" content="https://shabdah.app/assets/icons/og-image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mobile Bookmarklet — Shabdah">
+  <meta name="twitter:description" content="Install the bookmarklet for quick word lookups on mobile.">
+  <meta name="twitter:image" content="https://shabdah.app/assets/icons/og-image.jpg">
+  <meta name="theme-color" content="#0C3846">
+  <link rel="manifest" href="site.webmanifest">
+
+  <link rel="stylesheet" href="styles.css?v=16">
+
+  <!-- Supabase (CDN version - no build step / npm needed) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    const SUPABASE_URL = "https://pqdrtqnmfzgnrderwrzl.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yAeNx_8QM8zLa26fQw_wMw_jelTeQep";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  </script>
+  <style>
+    #auth-overlay { display: none; position: fixed; inset: 0; z-index: 560;
+      background: rgba(12,56,70,.55); align-items: center; justify-content: center; }
+    #auth-overlay.open { display: flex; }
+    #review-overlay { display: none; position: fixed; inset: 0; z-index: 560;
+      background: rgba(12,56,70,.55); align-items: center; justify-content: center; }
+    #review-overlay.open { display: flex; }
+    #review-box { position: relative; background: #fff; border-radius: 16px;
+      max-width: 420px; width: 90%; padding: 32px; text-align: center; }
+    #review-card-area img { max-width: 100%; border-radius: 10px; cursor: pointer; }
+    #review-controls button { padding: 10px 20px; margin: 0 6px; border-radius: 8px;
+      border: none; font-weight: 600; cursor: pointer; }
+    .review-btn-again { background: #f4d4d0; color: #8a2e20; }
+    .review-btn-good { background: #cfe8d8; color: #1a5c33; }
+    #review-card-area img.review-crop-front { clip-path: inset(0 0 14% 0); }
+
+    /* Page-specific styles */
+    .bookmarklet-hero {
+      text-align: center;
+      padding: 48px 24px;
+      background: linear-gradient(160deg, var(--teal-50) 0%, #ffffff 75%);
+      border-bottom: 1px solid var(--border);
+    }
+    .bookmarklet-hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: 600;
+      color: var(--teal-dark);
+      margin-bottom: 12px;
+    }
+    .bookmarklet-hero p {
+      font-size: 16px;
+      color: var(--ink-dim);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .bookmarklet-link-box {
+      display: inline-block;
+      padding: 16px 32px;
+      margin: 28px 0;
+      background: var(--teal-dark);
+      color: #fff;
+      font-family: var(--font-ui);
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(12,56,70,.25);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .bookmarklet-link-box:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(12,56,70,.3);
+    }
+    .bookmarklet-link-box:active {
+      transform: translateY(0);
+    }
+
+    .install-steps {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+    .install-steps h2 {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--teal-dark);
+      margin-bottom: 24px;
+    }
+
+    .device-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .device-tab {
+      padding: 10px 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .device-tab:hover {
+      border-color: var(--teal-lt);
+    }
+    .device-tab.active {
+      background: var(--teal-dark);
+      color: #fff;
+      border-color: var(--teal-dark);
+    }
+
+    .install-panel {
+      display: none;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .install-panel.active {
+      display: block;
+    }
+
+    .step-list {
+      list-style: none;
+      padding: 0;
+      counter-reset: step;
+    }
+    .step-list li {
+      counter-increment: step;
+      position: relative;
+      padding-left: 48px;
+      margin-bottom: 20px;
+      font-size: 15px;
+      color: var(--ink-dim);
+      line-height: 1.6;
+    }
+    .step-list li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--teal-dark);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-list li strong {
+      color: var(--ink);
+    }
+
+    .code-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 13px;
+      color: var(--ink);
+      word-break: break-all;
+      position: relative;
+    }
+    .code-box button {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px 10px;
+      background: var(--teal-dark);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .code-box button:hover {
+      background: var(--teal);
+    }
+
+    .tip-box {
+      background: #fdf6e3;
+      border: 1.5px dashed var(--gold);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #6b5518;
+    }
+    .tip-box strong {
+      color: #5c4a10;
+    }
+
+    .alt-methods {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 24px 48px;
+    }
+    .alt-methods h2 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--teal-dark);
+      margin-bottom: 20px;
+    }
+    .alt-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .alt-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--teal-dark);
+      margin-bottom: 8px;
+    }
+    .alt-card p {
+      font-size: 14px;
+      color: var(--ink-dim);
+      line-height: 1.6;
+      margin: 0;
+    }
+    .alt-card a {
+      color: var(--teal);
+      font-weight: 600;
+    }
+
+    .test-section {
+      background: var(--teal-50);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .test-section h2 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--teal-dark);
+      margin-bottom: 12px;
+    }
+    .test-section p {
+      font-size: 14px;
+      color: var(--ink-dim);
+      margin-bottom: 16px;
+    }
+    .test-text {
+      display: inline-block;
+      padding: 12px 24px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Noto Sans JP', var(--font-ui);
+      font-size: 24px;
+      color: var(--teal-dark);
+      user-select: all;
+      cursor: text;
+    }
+    .test-hint {
+      font-size: 12px;
+      color: var(--ink-muted);
+      margin-top: 10px;
+    }
+  </style>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
+</head>
+<body>
+
+<!-- ═══════════ AUTH OVERLAY ═══════════ -->
+<div id="auth-overlay" onclick="if(event.target===this)closeAuth()">
+  <div class="info-box" onclick="event.stopPropagation()" style="max-width:340px;">
+    <button class="focus-close" onclick="closeAuth()" aria-label="Close">✕</button>
+    <div class="auth-tabs" style="display:flex; gap:8px; margin-bottom:14px;">
+      <button id="auth-tab-login" class="nav-info-link" onclick="setAuthTab('login')">Log In</button>
+      <button id="auth-tab-signup" class="nav-info-link" onclick="setAuthTab('signup')">Sign Up</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <input id="auth-form-email" type="email" placeholder="Email" autocomplete="email">
+      <input id="auth-form-password" type="password" placeholder="Password" autocomplete="current-password">
+      <button id="auth-submit-btn" onclick="submitAuthForm()">Log In</button>
+      <div id="auth-message" style="font-size:13px; min-height:18px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ REVIEW OVERLAY ═══════════ -->
+<div id="review-overlay" onclick="if(event.target===this)closeReview()">
+  <div id="review-box" onclick="event.stopPropagation()">
+    <button class="focus-close" onclick="closeReview()" aria-label="Close">✕</button>
+    <div id="review-progress" style="font-size:13px; opacity:.7; margin-bottom:10px;"></div>
+    <div id="review-card-area"></div>
+    <div id="review-controls" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav class="home-nav">
+  <a class="nav-brand" href="index.html">
+    <img class="nav-logo" src="assets/icons/shabdah-logo.png" alt="Shabdah logo">
+    <span class="nav-brand-name">Shabdah</span>
+  </a>
+
+  <div class="nav-links">
+    <a class="nav-info-link" href="how-to-use.html">How it works</a>
+    <a class="nav-info-link" href="pricing.html">Pricing</a>
+    <a class="nav-info-link" href="about.html">About</a>
+  </div>
+
+  <div class="nav-spacer"></div>
+
+  <div class="nav-right">
+    <a class="nav-search-btn" href="index.html?action=search">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/>
+      </svg>
+      Search
+    </a>
+    <div class="auth-nav-area" id="auth-nav-area"></div>
+  </div>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="bookmarklet-hero">
+  <h1>Mobile Lookup Bookmarklet</h1>
+  <p>Look up any word on any webpage with a single tap. Works in Safari, Chrome, and any mobile browser.</p>
+
+  <a id="bookmarklet-link" class="bookmarklet-link-box" href="javascript:(function(){var t=window.getSelection().toString().trim();if(t)window.open('https://shabdah.app/index.html?q='+encodeURIComponent(t),'_blank');else alert('Select some text first');})();">
+    Shabdah Lookup
+  </a>
+
+  <p style="font-size: 13px; color: var(--ink-muted); margin-top: 8px;">
+    Drag this button to your bookmarks bar, or follow the instructions below for mobile.
+  </p>
+</section>
+
+<!-- ═══════════ INSTALL STEPS ═══════════ -->
+<section class="install-steps">
+  <h2>Installation Instructions</h2>
+
+  <div class="device-tabs">
+    <button class="device-tab active" onclick="showPanel('ios')">iOS Safari</button>
+    <button class="device-tab" onclick="showPanel('android')">Android Chrome</button>
+    <button class="device-tab" onclick="showPanel('desktop')">Desktop</button>
+  </div>
+
+  <!-- iOS Safari Panel -->
+  <div id="panel-ios" class="install-panel active">
+    <ol class="step-list">
+      <li>
+        <strong>Copy the bookmarklet code</strong><br>
+        Tap the button below to copy the bookmarklet code to your clipboard.
+        <div class="code-box" id="code-ios">
+          javascript:(function(){var t=window.getSelection().toString().trim();if(t)window.open('https://shabdah.app/index.html?q='+encodeURIComponent(t),'_blank');else alert('Select some text first');})();
+          <button onclick="copyCode('ios')">Copy</button>
+        </div>
+      </li>
+      <li>
+        <strong>Add any bookmark</strong><br>
+        In Safari, tap the Share button (square with arrow) and choose <strong>Add Bookmark</strong>. Save it anywhere.
+      </li>
+      <li>
+        <strong>Edit the bookmark</strong><br>
+        Open your Bookmarks, find the one you just added, tap <strong>Edit</strong>, then replace the URL with the code you copied.
+      </li>
+      <li>
+        <strong>Rename it</strong><br>
+        Change the name to something short like <strong>Shabdah Lookup</strong> or <strong>Lookup</strong>.
+      </li>
+    </ol>
+
+    <div class="tip-box">
+      <strong>How to use:</strong> On any webpage, select a word or phrase by long-pressing it. Then tap the bookmarks icon and choose your Shabdah Lookup bookmark. The definition will open in Shabdah.
+    </div>
+  </div>
+
+  <!-- Android Chrome Panel -->
+  <div id="panel-android" class="install-panel">
+    <ol class="step-list">
+      <li>
+        <strong>Copy the bookmarklet code</strong><br>
+        Tap the button below to copy the bookmarklet code.
+        <div class="code-box" id="code-android">
+          javascript:(function(){var t=window.getSelection().toString().trim();if(t)window.open('https://shabdah.app/index.html?q='+encodeURIComponent(t),'_blank');else alert('Select some text first');})();
+          <button onclick="copyCode('android')">Copy</button>
+        </div>
+      </li>
+      <li>
+        <strong>Bookmark this page</strong><br>
+        Tap the three-dot menu in Chrome and choose <strong>Add to bookmarks</strong> or tap the star icon.
+      </li>
+      <li>
+        <strong>Edit the bookmark</strong><br>
+        Go to Bookmarks (three-dot menu > Bookmarks), find the bookmark you just saved, long-press it, and choose <strong>Edit</strong>.
+      </li>
+      <li>
+        <strong>Replace the URL</strong><br>
+        Delete the current URL and paste the bookmarklet code you copied. Change the name to <strong>Shabdah Lookup</strong>.
+      </li>
+    </ol>
+
+    <div class="tip-box">
+      <strong>How to use:</strong> Select text on any page, then type the bookmark name in the address bar. Chrome will suggest your bookmarklet - tap it to look up the selected text.
+    </div>
+  </div>
+
+  <!-- Desktop Panel -->
+  <div id="panel-desktop" class="install-panel">
+    <ol class="step-list">
+      <li>
+        <strong>Show your bookmarks bar</strong><br>
+        Make sure your browser's bookmarks bar is visible (Ctrl/Cmd + Shift + B in most browsers).
+      </li>
+      <li>
+        <strong>Drag the button</strong><br>
+        Drag the <strong>Shabdah Lookup</strong> button at the top of this page directly onto your bookmarks bar.
+      </li>
+      <li>
+        <strong>Done!</strong><br>
+        Select any text on a webpage and click the bookmarklet to look it up.
+      </li>
+    </ol>
+
+    <div class="tip-box">
+      <strong>Pro tip:</strong> You can also use Quick Lookup and Reader Mode directly on the website for reading and instant flashcard creation. <a href="how-to-use.html">Learn how it works</a>.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ TEST SECTION ═══════════ -->
+<section class="test-section">
+  <h2>Test Your Bookmarklet</h2>
+  <p>Select this word, then use your bookmarklet to look it up:</p>
+  <div class="test-text">勉強</div>
+  <p class="test-hint">This means "to study" - your bookmarklet should open Shabdah with this word.</p>
+</section>
+
+<!-- ═══════════ ALTERNATIVE METHODS ═══════════ -->
+<section class="alt-methods">
+  <h2>Other Ways to Look Up Words on Mobile</h2>
+
+  <div class="alt-card">
+    <h3>Share to Shabdah (Android)</h3>
+    <p>
+      If you've installed Shabdah as an app (Add to Home Screen), you can share selected text directly to it.
+      Select text in any app, tap Share, and choose Shabdah.
+    </p>
+  </div>
+
+  <div class="alt-card">
+    <h3>Copy and Paste</h3>
+    <p>
+      Copy any word, then open <a href="index.html?action=lookup">Shabdah</a>.
+      If you have text on your clipboard, you'll be prompted to look it up automatically.
+    </p>
+  </div>
+
+  <div class="alt-card">
+    <h3>Reader Mode</h3>
+    <p>
+      Paste any text or article into <a href="reader.html">Reader Mode</a> to turn every word into an interactive, tap-to-inspect flashcard with audio and example sentences.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer class="ptw-footer">
+  <div class="ptw-footer-grid">
+    <div class="ptw-footer-brand">
+      <img src="assets/icons/shabdah-logo.png" alt="Shabdah">
+      <p class="ptw-footer-tagline">
+        A visual dictionary and flashcard system for languages, built on illustration
+        as well as translation.
+      </p>
+    </div>
+    <div class="ptw-footer-col">
+      <h4>Product</h4>
+      <ul>
+        <li><a href="how-to-use.html">How it works</a></li>
+        <li><a href="pricing.html">Pricing</a></li>
+        <li><a href="for-institutions.html">For Institutions</a></li>
+      </ul>
+    </div>
+    <div class="ptw-footer-col">
+      <h4>Learn</h4>
+      <ul>
+        <li><a href="how-to-use.html">How it works</a></li>
+        <li><a href="about.html">About the project</a></li>
+      </ul>
+    </div>
+    <div class="ptw-footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="terms.html">Terms of Use</a></li>
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="sources-and-licenses.html">Sources &amp; Licenses</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="ptw-footer-base">
+    <p>
+      Flashcard content, structural design, and illustrations are original to Shabdah. &copy; Shabdah.
+    </p>
+    <p>
+      Dictionary and example-sentence data draw in part on third-party open resources, used under
+      their respective licences. See <a href="sources-and-licenses.html">Sources &amp; Licenses</a>
+      for full details and attribution.
+    </p>
+  </div>
+</footer>
+
+<script src="auth.js?v=9"></script>
+<script src="srs.js?v=9"></script>
+<script>
+  // Panel switching
+  function showPanel(device) {
+    document.querySelectorAll('.device-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.install-panel').forEach(p => p.classList.remove('active'));
+
+    document.querySelector(`.device-tab[onclick*="${device}"]`).classList.add('active');
+    document.getElementById(`panel-${device}`).classList.add('active');
+  }
+
+  // Copy bookmarklet code
+  async function copyCode(device) {
+    const codeEl = document.getElementById(`code-${device}`);
+    const code = codeEl.textContent.trim().replace('Copy', '').trim();
+
+    try {
+      await navigator.clipboard.writeText(code);
+      const btn = codeEl.querySelector('button');
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = original; }, 2000);
+    } catch (e) {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = code;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      const btn = codeEl.querySelector('button');
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    }
+  }
+
+  // Prevent the bookmarklet link from executing on this page
+  document.getElementById('bookmarklet-link').addEventListener('click', function(e) {
+    // On touch devices, show a helpful message
+    if ('ontouchstart' in window) {
+      e.preventDefault();
+      alert('Long-press this button and choose "Copy Link" or follow the installation instructions below.');
+    }
+  });
+</script>
+
+</body>
+</html>

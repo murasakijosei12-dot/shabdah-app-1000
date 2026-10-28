@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing — Shabdah</title>
+  <meta name="description" content="Browse the visual dictionary free, forever. Unlock spaced-repetition review, all three directions, with one payment — no subscription.">
+
+  <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..800,0..100,0..1;1,9..144,400..800,0..100,0..1&family=Inter:opsz,wght@14..32,400..800&family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+
+  <!-- SEO -->
+  <link rel="canonical" href="https://shabdah.app/pricing.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Shabdah">
+  <meta property="og:url" content="https://shabdah.app/pricing.html">
+  <meta property="og:title" content="Pricing — Shabdah">
+  <meta property="og:description" content="Browse free forever. Unlock spaced repetition and full flashcards for one payment. No subscription.">
+  <meta property="og:image" content="https://shabdah.app/assets/icons/og-image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pricing — Shabdah">
+  <meta name="twitter:description" content="Browse free forever. Unlock spaced repetition and full flashcards for one payment. No subscription.">
+  <meta name="twitter:image" content="https://shabdah.app/assets/icons/og-image.jpg">
+  <meta name="theme-color" content="#0C3846">
+  <link rel="manifest" href="site.webmanifest">
+
+  <link rel="stylesheet" href="styles.css?v=16">
+
+
+  <!-- Supabase (CDN version - no build step / npm needed) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    // Global Supabase connection, used by auth.js and the account dropdown.
+    const SUPABASE_URL = "https://pqdrtqnmfzgnrderwrzl.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yAeNx_8QM8zLa26fQw_wMw_jelTeQep";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  </script>
+  <style>
+    /* Inline fallback so this can't break if styles.css is stale/uncached */
+    #auth-overlay { display: none; position: fixed; inset: 0; z-index: 560;
+      background: rgba(12,56,70,.55); align-items: center; justify-content: center; }
+    #auth-overlay.open { display: flex; }
+    #review-overlay { display: none; position: fixed; inset: 0; z-index: 560;
+      background: rgba(12,56,70,.55); align-items: center; justify-content: center; }
+    #review-overlay.open { display: flex; }
+    #review-box { position: relative; background: #fff; border-radius: 16px;
+      max-width: 420px; width: 90%; padding: 32px; text-align: center; }
+    #review-card-area img { max-width: 100%; border-radius: 10px; cursor: pointer; }
+    #review-controls button { padding: 10px 20px; margin: 0 6px; border-radius: 8px;
+      border: none; font-weight: 600; cursor: pointer; }
+    .review-btn-again { background: #f4d4d0; color: #8a2e20; }
+    .review-btn-good { background: #cfe8d8; color: #1a5c33; }
+    #review-card-area img.review-crop-front { clip-path: inset(0 0 14% 0); }
+  </style>  <script>
+    // Offline support. Registered on every page so the whole site,
+    // not just the app, survives losing connection.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
+
+  <style>
+    .ptw-pair-note{border:1px solid rgba(0,0,0,.12);border-radius:10px;padding:18px 22px;margin:28px 0;}
+    .ptw-pair-note h3{margin:0 0 10px;font-size:1.05rem;}
+    .ptw-pair-note ul{margin:0;padding-left:20px;}
+    .ptw-pair-note li{margin-bottom:8px;line-height:1.55;}
+    .ptw-pair-note li:last-child{margin-bottom:0;}
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ AUTH OVERLAY ═══════════ -->
+<div id="auth-overlay" onclick="if(event.target===this)closeAuth()">
+  <div class="info-box" onclick="event.stopPropagation()" style="max-width:340px;">
+    <button class="focus-close" onclick="closeAuth()" aria-label="Close">✕</button>
+    <div class="auth-tabs" style="display:flex; gap:8px; margin-bottom:14px;">
+      <button id="auth-tab-login" class="nav-info-link" onclick="setAuthTab('login')">Log In</button>
+      <button id="auth-tab-signup" class="nav-info-link" onclick="setAuthTab('signup')">Sign Up</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <input id="auth-form-email" type="email" placeholder="Email" autocomplete="email">
+      <input id="auth-form-password" type="password" placeholder="Password" autocomplete="current-password">
+      <button id="auth-submit-btn" onclick="submitAuthForm()">Log In</button>
+      <div id="auth-message" style="font-size:13px; min-height:18px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ REVIEW OVERLAY ═══════════ -->
+<div id="review-overlay" onclick="if(event.target===this)closeReview()">
+  <div id="review-box" onclick="event.stopPropagation()">
+    <button class="focus-close" onclick="closeReview()" aria-label="Close">✕</button>
+    <div id="review-progress" style="font-size:13px; opacity:.7; margin-bottom:10px;"></div>
+    <div id="review-card-area"></div>
+    <div id="review-controls" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<!-- ═══════════ MY NOTES OVERLAY ═══════════ -->
+<div id="notes-overlay" onclick="if(event.target===this)closeMyNotes()">
+  <div class="info-box" onclick="event.stopPropagation()" style="max-width:520px;">
+    <button class="focus-close" onclick="closeMyNotes()" aria-label="Close">✕</button>
+    <h3 style="margin-bottom:14px;">My Notes</h3>
+    <div id="notes-list-content"></div>
+  </div>
+</div>
+
+<!-- ═══════════ MY ACCOUNT OVERLAY ═══════════ -->
+<div id="account-overlay" onclick="if(event.target===this)closeMyAccount()">
+  <div class="info-box" onclick="event.stopPropagation()" style="max-width:520px;">
+    <button class="focus-close" onclick="closeMyAccount()" aria-label="Close">✕</button>
+    <div id="account-tab-body"></div>
+  </div>
+</div>
+
+<header class="ptw-page-header-wrap">
+  <a href="index.html">
+    <svg class="ptw-header-banner" viewBox="0 0 1600 300" role="img" aria-label="Shabdah">
+    <title>Shabdah</title>
+    <defs>
+      <!-- Base light aquamarine gradient with smooth luminous transition -->
+      <linearGradient id="ptwAquaGrad_pricing" x1="0%" y1="0%" x2="100%" y2="85%">
+        <stop offset="0%"   stop-color="#1B7882"/>
+        <stop offset="35%"  stop-color="#249E9F"/>
+        <stop offset="70%"  stop-color="#34B8AB"/>
+        <stop offset="100%" stop-color="#48CDB8"/>
+      </linearGradient>
+
+      <!-- Soft horizon fade into page background at top and bottom -->
+      <linearGradient id="ptwPageBlend_pricing" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.75"/>
+        <stop offset="5%"   stop-color="#FFFFFF" stop-opacity="0"/>
+        <stop offset="93%"  stop-color="#FFFFFF" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+      </linearGradient>
+
+      <!-- Swan luminous aura -->
+      <radialGradient id="swanAura_pricing" cx="48%" cy="48%" r="52%">
+        <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.34"/>
+        <stop offset="55%"  stop-color="#A7F3D0" stop-opacity="0.15"/>
+        <stop offset="100%" stop-color="#38A3A5" stop-opacity="0"/>
+      </radialGradient>
+
+      <!-- Text depth shadow -->
+      <filter id="ptwTextDepth_pricing" x="-10%" y="-10%" width="120%" height="130%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0E484F" flood-opacity="0.32"/>
+      </filter>
+      
+      <filter id="ptwSwanDepth_pricing" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0E484F" flood-opacity="0.25"/>
+      </filter>
+    </defs>
+
+    <!-- 1. Background fill -->
+    <rect width="1600" height="300" fill="url(#ptwAquaGrad_pricing)"/>
+    
+    <!-- 2. Ambient light orbs & water wave ribbons -->
+    <circle cx="1380" cy="120" r="150" fill="#64DFDF" opacity="0.12"/>
+    <circle cx="850" cy="50" r="180" fill="#FFFFFF" opacity="0.05"/>
+    
+    <!-- Flowing layered waves -->
+    <path d="M0 232 C 210 196, 360 264, 590 236 S 1010 192, 1240 230 S 1490 258, 1600 234 L1600 300 L0 300 Z"
+          fill="#FFFFFF" opacity="0.10"/>
+    <path d="M0 258 C 240 228, 430 284, 700 262 S 1120 224, 1360 258 S 1530 278, 1600 264 L1600 300 L0 300 Z"
+          fill="#A7F3D0" opacity="0.20"/>
+    <path d="M0 276 C 260 254, 480 292, 760 278 S 1160 250, 1400 278 S 1550 292, 1600 282 L1600 300 L0 300 Z"
+          fill="#FFFFFF" opacity="0.16"/>
+
+    <!-- 3. Swan & Water Ripple Composition -->
+    <g class="ptw-header-swan-group">
+      <!-- Luminous pearl aura behind swan -->
+      <circle cx="126" cy="144" r="98" fill="url(#swanAura_pricing)"/>
+      <circle cx="126" cy="144" r="82" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-opacity="0.32" stroke-dasharray="4 4"/>
+      
+      <!-- Water ripples at the base of the swan -->
+      <ellipse cx="126" cy="228" rx="58" ry="7" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-opacity="0.45"/>
+      <ellipse cx="126" cy="237" rx="76" ry="6" fill="none" stroke="#A7F3D0" stroke-width="1.4" stroke-opacity="0.32"/>
+      
+      <!-- The Swan Mark -->
+      <image href="assets/icons/shabdah-swan-mark-white.png" x="52" y="38" width="148" height="216" opacity="0.99" filter="url(#ptwSwanDepth_pricing)"/>
+    </g>
+
+    <!-- 4. Shabdah Wordmark & Balanced Subtitle -->
+    <g class="ptw-header-brand-group">
+      <text x="224" y="170" text-anchor="start" fill="#FFFFFF"
+            font-family="Fraunces, Georgia, 'Times New Roman', serif"
+            font-weight="800" font-size="114" letter-spacing="1.2"
+            filter="url(#ptwTextDepth_pricing)"
+            style="font-variation-settings:'SOFT' 35,'WONK' 1; font-optical-sizing:auto;">Shabdah</text>
+      <circle cx="227" cy="211" r="3.2" fill="#FFE898" opacity="0.92"/>
+      <text x="238" y="217" text-anchor="start" fill="#E6FAF8"
+            font-family="'DM Sans', -apple-system, sans-serif"
+            font-weight="600" font-size="20" letter-spacing="4.2" opacity="0.95">VISUAL VOCABULARY</text>
+    </g>
+
+    <!-- 5. Page-Specific Orbiting Motifs -->
+<g fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+      <g transform="translate(780,75) rotate(-10) scale(1.05)"><circle cx="0" cy="0" r="18"/><path d="M-6 -9 C -6 -14, 6 -14, 6 -10 C 6 -5, -6 -4, -6 1 C -6 6, 6 6, 6 1"/><path d="M0 -16 V16" opacity="0.5"/></g>
+
+<g transform="translate(1120,195) rotate(8) scale(1.0)"><path d="M-24 -5 L0 -16 L24 -5 L0 6 Z"/><path d="M-14 0 L-14 13 C -6 19, 6 19, 14 13 L14 0"/></g>
+      <g transform="translate(1430,85) rotate(14) scale(0.85)"><circle cx="0" cy="0" r="18"/><path d="M-6 -9 C -6 -14, 6 -14, 6 -10 C 6 -5, -6 -4, -6 1 C -6 6, 6 6, 6 1"/><path d="M0 -16 V16" opacity="0.5"/></g>
+    </g>
+
+    <g fill="#A7F3D0" opacity="0.6">
+      <circle cx="660" cy="52"  r="4.5"/>
+      <circle cx="1310" cy="140" r="3.5"/>
+      <circle cx="1230" cy="252" r="4"/>
+    </g>
+    <g stroke="#A7F3D0" stroke-width="2.6" fill="none" opacity="0.55" stroke-linecap="round">
+      <path d="M980 226 h16 M988 218 v16"/>
+      <path d="M1520 110 h14 M1527 103 v14"/>
+    </g>
+
+    <!-- 6. Seamless page blend overlay -->
+    <rect width="1600" height="300" fill="url(#ptwPageBlend_pricing)" pointer-events="none"/>
+  </svg>
+  </a>
+</header>
+
+<nav class="home-nav">
+  <a class="nav-brand" href="index.html" style="text-decoration:none;">
+    <img class="nav-logo" src="assets/icons/shabdah-logo.png" alt="Shabdah logo">
+    <span class="nav-brand-name">Shabdah</span>
+  </a>
+
+  <div class="nav-links">
+    <a class="nav-info-link" href="how-to-use.html">How it works</a>
+    <a class="nav-info-link is-current" href="pricing.html" aria-current="page">Pricing</a>
+    <a class="nav-info-link" href="about.html">About</a>
+  </div>
+
+  <div class="nav-spacer"></div>
+
+  <div class="nav-right">
+    <a class="nav-cta" href="index.html">Browse the dictionary</a>
+  <div class="auth-nav-area"></div>
+  </div>
+</nav>
+
+<main class="ptw-page-content pricing-page">
+
+  <!-- HERO -->
+  <div class="price-hero">
+    <h1>Pay once. Keep it.</h1>
+    <p class="page-lede">
+      The visual dictionary is free and always will be &mdash; all 5,000 concepts. What you pay for is the study machinery around it: saving
+      words as you read, and being reminded of them at the right moment.
+    </p>
+
+    <div class="price-badge-row">
+      <span class="price-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>
+        No subscription
+      </span>
+      <span class="price-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>
+        Updates included
+      </span>
+      <span class="price-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>
+        14-day refund
+      </span>
+    </div>
+  </div>
+
+  <!-- CURRENCY NOTICE -->
+  <div class="currency-note">
+    <span>Showing prices for</span>
+    <select id="country-select" onchange="ptwSetCountry(this.value)" aria-label="Choose your country">
+      <option value="">Detecting&hellip;</option>
+    </select>
+    <span id="currency-hint"></span>
+  </div>
+  <!-- TIERS -->
+  <div class="tier-grid">
+
+    <div class="tier">
+      <div class="tier-name">Free</div>
+      <p class="tier-tagline">No account needed to browse. No card, ever.</p>
+
+      <div class="tier-price">
+        <span class="price-amount">Free</span>
+        <span class="price-unit">forever</span>
+      </div>
+      <p class="price-sub">Not a trial. It doesn't expire.</p>
+
+      <ul class="tier-list">
+        <li>All 5,000 illustrated concepts, in Japanese, English, Hindi and French</li>
+        <li>Unlimited search and dictionary look-up across every script &mdash; kanji, kana and romaji</li>
+        <li>Audio for every word and meaning</li>
+        <li>Your first 200 words unlocked, per direction &mdash; shared across flashcards, review, notes, categories, and favourites</li>
+      </ul>
+
+      <div class="tier-cta">
+        <a class="btn-secondary" href="index.html">Start browsing</a>
+      </div>
+    </div>
+
+    <div class="tier tier-featured">
+      <span class="tier-flag">Founding Edition</span>
+      <div class="tier-name">Founding Edition</div>
+      <p class="tier-tagline">For people who want the whole library working while they read.</p>
+
+      <div class="tier-price">
+        <span class="price-amount" id="hero-price">&mdash;</span>
+        <span class="price-was" id="hero-was"></span>
+        <span class="price-unit">one payment</span>
+      </div>
+      <p class="price-sub" id="hero-price-sub">One payment includes all three directions — Japanese, Hindi and French, each studying into English.</p>
+
+      <ul class="tier-list">
+        <li>Everything in Free, with the 200-word limit removed</li>
+        <li>All 5,000 concepts as flashcards, accessible across all your devices</li>
+        <li>Spaced-repetition review with no cap</li>
+        <li>Unlimited custom flashcards &amp; favourites</li>
+        <li>Every future improvement to all three directions, at no extra cost</li>
+        <li>Access to all future language pairs added to Shabdah, all future updates, and all future additions to concepts</li>
+      </ul>
+
+      <div class="tier-cta">
+        <button class="btn-primary" id="buy-btn" onclick="ptwBuy()">Get the Founding Edition</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPARISON TABLE -->
+  <div class="ptw-table-wrap">
+    <table class="ptw-table">
+      <caption>The 200 free words below are <strong>one shared allowance per direction</strong> &mdash; not 200 for review, another 200 for notes, another 200 for hover, and so on. The first word you review, note, categorise, or favourite counts as 1 of your 200; using it again in a different way never counts twice. You keep every word you've unlocked permanently &mdash; this is not a trial that resets.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Feature</th>
+          <th scope="col">Free</th>
+          <th scope="col" class="col-premium">Founding Edition</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">Visual dictionary &mdash; all 5,000 concepts</th><td><span class="tick">Included</span></td><td class="col-premium"><span class="tick">Included</span></td></tr>
+        <tr><th scope="row">Search inside example sentences</th><td><span class="qty">Unlimited</span></td><td class="col-premium"><span class="qty">Unlimited</span></td></tr>
+        <tr><th scope="row">Lookup on phones and tablets</th><td><span class="yes-badge">Included</span></td><td class="col-premium"><span class="yes-badge">Included</span></td></tr>
+        <tr><th scope="row">Dictionary beyond the 5,000 concepts</th><td><span class="qty">Unlimited</span></td><td class="col-premium"><span class="qty">Unlimited</span></td></tr>
+        <tr><th scope="row">Search / look up a word on the website</th><td><span class="qty">Unlimited</span></td><td class="col-premium"><span class="qty">Unlimited</span></td></tr>
+        <tr><th scope="row">Illustrations</th><td><span class="tick">Included</span></td><td class="col-premium"><span class="tick">Included</span></td></tr>
+        <tr><th scope="row">Audio for word and meaning</th><td><span class="tick">Included</span></td><td class="col-premium"><span class="tick">Included</span></td></tr>
+        <tr><th scope="row">Number of custom categories you can create</th><td><span class="qty">Unlimited</span></td><td class="col-premium"><span class="qty">Unlimited</span></td></tr>
+        <tr><th scope="row">Words with a saved flashcard</th><td><span class="qty qty-limited">200 shared</span></td><td class="col-premium"><span class="qty">All 5,000</span></td></tr>
+        <tr><th scope="row">Words in spaced-repetition review</th><td><span class="qty qty-limited">200 shared</span></td><td class="col-premium"><span class="qty">Unlimited</span></td></tr>
+        <tr><th scope="row">Words with a personal note</th><td><span class="qty qty-limited">200 shared</span></td><td class="col-premium"><span class="qty">Unlimited</span></td></tr>
+        <tr><th scope="row">Words filed into a category</th><td><span class="qty qty-limited">200 shared</span></td><td class="col-premium"><span class="qty">Unlimited</span></td></tr>
+        <tr><th scope="row">Custom flashcards &amp; favourites</th><td><span class="qty qty-limited">200 shared</span></td><td class="col-premium"><span class="qty">Unlimited</span></td></tr>
+        <tr><th scope="row">Inflected and conjugated forms</th><td><span class="qty qty-limited">200 shared</span></td><td class="col-premium"><span class="qty">Unlimited</span></td></tr>
+        <tr><th scope="row">Future updates to your pair</th><td><span class="dash">Not included</span></td><td class="col-premium"><span class="tick">Included, forever</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- WHAT A PAIR MEANS -->
+  <h2>What you are buying</h2>
+  <p>
+    This release covers three directions, all translating into English &mdash; Japanese, Hindi
+    and French each study straight into English. One payment unlocks every direction &mdash;
+    there is a single Founding Edition, not a set of products to choose between.
+  </p>
+  <p>
+    Your Founding Edition unlocks the full library in every direction as it exists today, plus
+    every concept, illustration and feature that will be added to it from here on.
+  </p>
+  <!-- REGIONAL PRICING -->
+  <h2>Prices by region</h2>
+
+  <div class="ptw-table-wrap">
+    <table class="ptw-table region-table">
+      <caption>Founding Edition, one-time payment. Includes all three directions.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Region</th>
+          <th scope="col">Founding Edition</th>
+        </tr>
+      </thead>
+      <tbody id="region-table-body"></tbody>
+    </table>
+  </div>
+
+  <!-- FAQ -->
+  <h2>Questions</h2>
+  <div class="faq-list">
+
+    <details class="faq-item">
+      <summary>Is this a subscription?</summary>
+      <div class="faq-answer"><p>No. You pay once for the Founding Edition — all three directions included — and it stays yours. There is no renewal, no expiry, and no card kept on file.</p></div>
+    </details>
+
+    <details class="faq-item">
+      <summary>How do I activate my purchase?</summary>
+      <div class="faq-answer"><p>Log into your account on the website with the same email used at checkout. Your purchased access unlocks immediately across all your devices.</p></div>
+    </details>
+
+    <details class="faq-item">
+      <summary>Can I get a refund?</summary>
+      <div class="faq-answer"><p>Within 14 days, for a valid reason. Write to us from the <a href="contact.html">contact page</a> with the reason and the payment is returned. See the <a href="terms.html">Terms of Use</a> for the full wording.</p></div>
+    </details>
+
+  </div>
+
+
+</main>
+
+<footer class="ptw-footer">
+  <div class="ptw-footer-grid">
+    <div class="ptw-footer-brand">
+      <img src="assets/icons/shabdah-logo.png" alt="Shabdah">
+      <p class="ptw-footer-tagline">
+        A visual dictionary and flashcard system for languages, built on illustration
+        rather than translation.
+      </p>
+    </div>
+    <div class="ptw-footer-col">
+      <h4>Product</h4>
+      <ul>
+        <li><a href="how-to-use.html">How it works</a></li>
+        <li><a href="pricing.html">Pricing</a></li>
+        <li><a href="for-institutions.html">For Institutions</a></li>
+      </ul>
+    </div>
+    <div class="ptw-footer-col">
+      <h4>Learn</h4>
+      <ul>
+        <li><a href="how-to-use.html">How it works</a></li>
+        <li><a href="about.html">About the project</a></li>
+      </ul>
+    </div>
+    <div class="ptw-footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="terms.html">Terms of Use</a></li>
+        <li><a href="privacy.html">Privacy Policy</a></li>
+      
+        <li><a href="sources-and-licenses.html">Sources &amp; Licenses</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="ptw-footer-base">
+    <p>
+      Flashcard content, structural design, and illustrations are original to Shabdah. &copy; Shabdah.
+    </p>
+    <p>
+      Dictionary and example-sentence data draw in part on third-party open resources, used under
+      their respective licences. See <a href="sources-and-licenses.html">Sources &amp; Licenses</a>
+      for full details and attribution.
+    </p>
+  </div>
+</footer>
+
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+<!-- PTW-AUTH-INJECT start: Supabase client required by the checkout gate -->
+<!-- Supabase is already initialised in <head> (same URL, key and client).
+     A second identical block was injected here by the auth-inject pass; its
+     duplicate `const SUPABASE_URL` threw "Identifier already declared",
+     killing this whole script block on every load of this page. Removed --
+     the window export below still works, since the head block's
+     supabaseClient is in scope. -->
+<script>
+  try { window.supabaseClient = supabaseClient; } catch (e) {}
+</script>
+<!-- PTW-AUTH-INJECT end -->
+
+
+<!-- PTW-PAYSELECT start: buyer-facing payment method selector -->
+<style>
+  .ptw-pay-choice{margin:18px 0 14px;text-align:left;font-family:inherit}
+  .ptw-pay-choice-h{font-size:.82rem;font-weight:600;letter-spacing:.04em;
+    text-transform:uppercase;opacity:.65;margin-bottom:8px}
+  .ptw-pay-opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;
+    border:1px solid rgba(0,0,0,.14);border-radius:10px;margin-bottom:8px;
+    cursor:pointer;transition:border-color .15s,background .15s}
+  .ptw-pay-opt:hover{background:rgba(0,0,0,.02)}
+  .ptw-pay-opt[data-sel="1"]{border-color:#1f6f78;background:rgba(31,111,120,.06)}
+  .ptw-pay-opt input{margin-top:3px;flex:none}
+  .ptw-pay-name{font-weight:600;font-size:.95rem}
+  .ptw-pay-sub{display:block;font-size:.82rem;opacity:.7;margin-top:2px}
+</style>
+<script>
+(function () {
+  if (window.__ptwPaySelectDone) return;
+  window.__ptwPaySelectDone = true;
+  window.PTW_PAYMENT_CHOICE = window.PTW_PAYMENT_CHOICE || 'razorpay';
+
+  // 2026-10-05: Razorpay now handles every buyer (see pricing-config.js's
+  // ptwUseRazorpay) -- Paddle removed from this chooser so it can never be
+  // selected; its own code is left in place elsewhere for instant rollback.
+  var OPTS = [
+    ['razorpay', 'Razorpay', 'UPI, cards, netbanking and international cards']
+  ];
+
+  function findBuyButton() {
+    var els = document.querySelectorAll('button, a[role="button"], .btn, [class*="buy"]');
+    for (var i = 0; i < els.length; i++) {
+      var t = (els[i].textContent || '').replace(/\s+/g, ' ').trim();
+      if (/^Get\s/i.test(t) && t.length < 60) return els[i];
+    }
+    return null;
+  }
+
+  function build() {
+    var btn = findBuyButton();
+    if (!btn) { console.warn('[ptw] payment selector: buy button not found'); return; }
+    if (document.querySelector('.ptw-pay-choice')) return;
+
+    var wrap = document.createElement('div');
+    wrap.className = 'ptw-pay-choice';
+    var h = document.createElement('div');
+    h.className = 'ptw-pay-choice-h';
+    h.textContent = 'Payment method';
+    wrap.appendChild(h);
+
+    OPTS.forEach(function (o) {
+      var lab = document.createElement('label');
+      lab.className = 'ptw-pay-opt';
+      lab.setAttribute('data-sel', o[0] === window.PTW_PAYMENT_CHOICE ? '1' : '0');
+
+      var r = document.createElement('input');
+      r.type = 'radio';
+      r.name = 'ptw-pay';
+      r.value = o[0];
+      r.checked = (o[0] === window.PTW_PAYMENT_CHOICE);
+      r.addEventListener('change', function () {
+        window.PTW_PAYMENT_CHOICE = o[0];
+        var all = wrap.querySelectorAll('.ptw-pay-opt');
+        for (var i = 0; i < all.length; i++) {
+          all[i].setAttribute('data-sel',
+            all[i].querySelector('input').checked ? '1' : '0');
+        }
+      });
+
+      var txt = document.createElement('span');
+      var nm = document.createElement('span');
+      nm.className = 'ptw-pay-name';
+      nm.textContent = o[1];
+      var sub = document.createElement('span');
+      sub.className = 'ptw-pay-sub';
+      sub.textContent = o[2];
+      txt.appendChild(nm);
+      txt.appendChild(sub);
+
+      lab.appendChild(r);
+      lab.appendChild(txt);
+      wrap.appendChild(lab);
+    });
+
+    btn.parentNode.insertBefore(wrap, btn);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', build);
+  } else {
+    build();
+  }
+})();
+</script>
+<!-- PTW-PAYSELECT end -->
+
+<script src="pricing-config.js?v=7"></script>
+<script>
+/* Render the pricing page from PTW_PRICING. */
+
+let ptwCountry = null;
+// One purchase unlocks both directions (see pricing-config.js's
+// PTW_CHECKOUT_PAIR comment) -- this is just which catalog price/order gets
+// opened at checkout, not a user-facing choice. Owning either pair's
+// entitlement row means the account owns the Founding Edition.
+const ptwSelectedPair = PTW_CHECKOUT_PAIR;
+let ptwOwnedPairs = [];   // filled in after load; see initPricing below
+
+function ptwBuildCountrySelect(active) {
+  const sel = document.getElementById('country-select');
+  const entries = Object.entries(PTW_PRICING)
+    .sort((a, b) => a[1].label.localeCompare(b[1].label));
+  sel.innerHTML =
+    entries.map(([code, b]) =>
+      `<option value="${code}"${code === active ? ' selected' : ''}>${b.label}</option>`).join('') +
+    `<option value="ZZ"${!PTW_PRICING[active] ? ' selected' : ''}>Rest of world</option>`;
+}
+
+function ptwRenderPricing(countryCode) {
+  ptwCountry = countryCode;
+  const band = ptwPriceFor(countryCode);
+
+  ptwBuildCountrySelect(countryCode);
+  document.getElementById('currency-hint').textContent = `in ${band.currency}`;
+
+  ptwUpdateHeadlinePrice();
+  ptwRenderRegionTable(countryCode);
+}
+
+function ptwUpdateHeadlinePrice() {
+  const band = ptwPriceFor(ptwCountry);
+  const amount = band.single;
+
+  document.getElementById('hero-price').textContent = ptwFormatPrice(amount, band);
+
+  // Only ever show the single fixed price for the region -- no "was"/"rising
+  // to" display, regardless of what a pricing band's `was` field holds.
+  document.getElementById('hero-was').style.display = 'none';
+
+  const btn = document.getElementById('buy-btn');
+  if (!paddleIsConfigured(ptwSelectedPair)) {
+    btn.textContent = 'Founding Edition — coming soon';
+    btn.disabled = true;
+    btn.style.opacity = '0.55';
+    btn.style.cursor = 'default';
+  } else if (ptwOwnedPairs.length > 0) {
+    // Owning EITHER pair's entitlement row means the account owns the
+    // Founding Edition (one purchase always grants both, see
+    // paddle-webhook.mjs / razorpay-webhook.mjs) -- so any row here means
+    // "already paid for", not just a match on ptwSelectedPair specifically.
+    btn.textContent = 'You own the Founding Edition';
+    btn.disabled = true;
+    btn.style.opacity = '0.55';
+    btn.style.cursor = 'default';
+  } else {
+    btn.textContent = 'Get the Founding Edition';
+    btn.disabled = false;
+    btn.style.opacity = '';
+    btn.style.cursor = '';
+  }
+}
+
+function ptwRenderRegionTable(activeCountry) {
+  const seen = new Set();
+  const rows = [];
+  for (const [code, b] of Object.entries(PTW_PRICING)) {
+    const key = `${b.currency}-${b.single}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    rows.push([code, b]);
+  }
+  rows.push(['ZZ', PTW_PRICING_DEFAULT]);
+
+  const activeBand = ptwPriceFor(activeCountry);
+  document.getElementById('region-table-body').innerHTML = rows.map(([code, b]) => {
+    const isYou = b.currency === activeBand.currency && b.single === activeBand.single;
+    return `<tr class="${isYou ? 'is-you' : ''}">
+      <th scope="row">${b.label}${isYou ? '<span class="region-you-flag">your region</span>' : ''}</th>
+      <td>${ptwFormatPrice(b.single, b)}</td>
+    </tr>`;
+  }).join('');
+}
+
+(async function initPricing() {
+  initPaddle();
+  const code = await ptwDetectCountry();
+  ptwRenderPricing(code);
+
+  // Entitlements are fetched after the first paint so a slow or failed
+  // lookup never delays the prices. If it returns nothing -- logged out,
+  // offline -- the page simply behaves as it did before.
+  try {
+    ptwOwnedPairs = await ptwGetEntitlements();
+    if (ptwOwnedPairs.length) ptwRenderPricing(code);
+  } catch (e) { /* prices are already on screen; leave them alone */ }
+})();
+</script>
+
+<script src="auth.js?v=9"></script>
+<script src="nav-data.js?v=2"></script>
+<script src="entitlement.js?v=9"></script>
+<script src="notes.js?v=8"></script>
+<script src="account.js?v=9"></script>
+<script src="srs.js?v=8"></script>
+</body>
+</html>

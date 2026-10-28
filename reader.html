@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Reader Mode — Shabdah</title>
+  <meta name="description" content="Read Japanese articles with touch-to-lookup. Tap any word for instant definitions.">
+
+  <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..800,0..100,0..1;1,9..144,400..800,0..100,0..1&family=Inter:opsz,wght@14..32,400..800&family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <link rel="canonical" href="https://shabdah.app/reader.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Shabdah">
+  <meta property="og:url" content="https://shabdah.app/reader.html">
+  <meta property="og:title" content="Reader Mode — Shabdah">
+  <meta property="og:description" content="Read Japanese articles with touch-to-lookup.">
+  <meta property="og:image" content="https://shabdah.app/assets/icons/og-image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0C3846">
+  <link rel="manifest" href="site.webmanifest">
+
+  <link rel="stylesheet" href="styles.css?v=16">
+
+  <style>
+    /* Reader-specific styles */
+    .reader-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .reader-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .reader-back {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--ink-dim);
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+    .reader-back:hover {
+      background: var(--bg);
+      color: var(--teal-dark);
+    }
+
+    .reader-title {
+      flex: 1;
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--teal-dark);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .reader-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .reader-btn {
+      padding: 8px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-dim);
+      cursor: pointer;
+    }
+    .reader-btn:hover {
+      border-color: var(--teal-lt);
+      color: var(--teal-dark);
+    }
+    .reader-btn.active {
+      background: var(--teal-dark);
+      color: #fff;
+      border-color: var(--teal-dark);
+    }
+
+    /* Input area */
+    .reader-input-section {
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    .reader-input-title {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--teal-dark);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .reader-input-subtitle {
+      font-size: 15px;
+      color: var(--ink-muted);
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .reader-textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 16px;
+      font-family: 'Noto Sans JP', var(--font-ui);
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--ink);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      resize: vertical;
+    }
+    .reader-textarea:focus {
+      outline: none;
+      border-color: var(--teal-lt);
+    }
+    .reader-textarea::placeholder {
+      color: var(--ink-muted);
+    }
+
+    .reader-start-btn {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      background: var(--teal-dark);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: var(--font-ui);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .reader-start-btn:hover {
+      background: var(--teal);
+    }
+
+    .reader-tips {
+      margin-top: 32px;
+      padding: 20px;
+      background: var(--teal-50);
+      border-radius: var(--radius);
+    }
+    .reader-tips h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--teal-dark);
+      margin-bottom: 10px;
+    }
+    .reader-tips ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .reader-tips li {
+      font-size: 13px;
+      color: var(--ink-dim);
+      padding: 4px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .reader-tips li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--teal);
+    }
+
+    /* Reading area */
+    .reader-content {
+      display: none;
+      flex: 1;
+      background: var(--surface);
+    }
+    .reader-content.active {
+      display: block;
+    }
+
+    .reader-text-area {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 24px 100px;
+    }
+
+    .reader-text {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 20px;
+      line-height: 2;
+      color: var(--ink);
+      text-align: justify;
+    }
+
+    .reader-word {
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.15s;
+    }
+    .reader-word:hover {
+      background: var(--teal-50);
+    }
+    .reader-word.selected {
+      background: var(--teal-50);
+      box-shadow: 0 2px 0 var(--teal);
+    }
+    .reader-word.added {
+      background: rgba(26, 122, 76, 0.1);
+    }
+
+    /* Word popup */
+    .reader-popup {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+      padding: 20px;
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+      transform: translateY(100%);
+      transition: transform 0.25s ease-out;
+    }
+    .reader-popup.open {
+      display: block;
+      transform: translateY(0);
+    }
+
+    .reader-popup-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .reader-popup-word {
+      font-family: 'Noto Sans JP', var(--font-ui);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--teal-dark);
+    }
+
+    .reader-popup-reading {
+      font-size: 14px;
+      color: var(--ink-muted);
+      margin-top: 2px;
+    }
+
+    .reader-popup-close {
+      margin-left: auto;
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--ink-muted);
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .reader-popup-gloss {
+      font-size: 16px;
+      color: var(--ink-dim);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .reader-popup-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .reader-popup-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+
+    .reader-popup-btn-primary {
+      background: var(--teal-dark);
+      color: #fff;
+    }
+    .reader-popup-btn-primary:hover {
+      background: var(--teal);
+    }
+
+    .reader-popup-btn-secondary {
+      background: var(--bg);
+      color: var(--teal-dark);
+      border: 1.5px solid var(--border);
+    }
+
+    /* Settings */
+    .reader-settings {
+      display: none;
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      z-index: 150;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow-lg);
+      min-width: 220px;
+    }
+    .reader-settings.open {
+      display: block;
+    }
+
+    .reader-setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 13px;
+      color: var(--ink-dim);
+    }
+
+    .reader-setting-row input[type="range"] {
+      width: 100px;
+    }
+
+    /* Progress indicator */
+    .reader-progress {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--border);
+      z-index: 90;
+    }
+    .reader-progress-bar {
+      height: 100%;
+      background: var(--teal);
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    /* Loading state */
+    .reader-loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--ink-muted);
+    }
+
+    /* Stats bar */
+    .reader-stats {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      padding: 12px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--ink-muted);
+    }
+    .reader-stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .reader-stat-num {
+      font-weight: 700;
+      color: var(--teal-dark);
+    }
+
+    @media (max-width: 640px) {
+      .reader-input-title {
+        font-size: 24px;
+      }
+      .reader-text {
+        font-size: 18px;
+        line-height: 1.9;
+      }
+      .reader-title {
+        display: none;
+      }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    const SUPABASE_URL = "https://pqdrtqnmfzgnrderwrzl.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yAeNx_8QM8zLa26fQw_wMw_jelTeQep";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  </script>
+  <script>
+    // Stub for srs.js which expects CARDS array (used by buildReviewQueue)
+    // Reader Mode only uses the save functions, not the full review session
+    var CARDS = [];
+  </script>
+  <script src="auth.js"></script>
+  <script src="srs.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
+</head>
+<body>
+
+<div class="reader-page">
+  <!-- Header -->
+  <header class="reader-header">
+    <a class="reader-back" href="index.html">
+      <span>←</span>
+      <span>Back</span>
+    </a>
+    <div class="reader-title" id="reader-title">Reader Mode</div>
+    <div class="reader-actions">
+      <button class="reader-btn" id="settings-btn" onclick="toggleSettings()">⚙️</button>
+      <button class="reader-btn" id="clear-btn" onclick="clearReader()" style="display: none;">Clear</button>
+    </div>
+  </header>
+
+  <!-- Progress bar -->
+  <div class="reader-progress" id="reader-progress" style="display: none;">
+    <div class="reader-progress-bar" id="progress-bar"></div>
+  </div>
+
+  <!-- Settings panel -->
+  <div class="reader-settings" id="settings-panel">
+    <div class="reader-setting-row">
+      <span>Font size</span>
+      <input type="range" min="14" max="28" value="20" id="font-size-slider" onchange="updateFontSize(this.value)">
+    </div>
+    <div class="reader-setting-row">
+      <span>Line height</span>
+      <input type="range" min="1.5" max="2.5" step="0.1" value="2" id="line-height-slider" onchange="updateLineHeight(this.value)">
+    </div>
+    <div class="reader-setting-row">
+      <span>Dictionary</span>
+      <button class="reader-btn" id="dict-status-btn" onclick="loadDictionary()">Load</button>
+    </div>
+  </div>
+
+  <!-- Input section -->
+  <div class="reader-input-section" id="input-section">
+    <h1 class="reader-input-title">Reader Mode</h1>
+    <p class="reader-input-subtitle">Paste Japanese text and tap any word to look it up</p>
+
+    <textarea
+      class="reader-textarea"
+      id="reader-input"
+      placeholder="Paste Japanese text here...
+
+Example:
+日本語を勉強しています。毎日新しい言葉を覚えています。"
+    ></textarea>
+
+    <button class="reader-start-btn" onclick="startReading()">Start Reading</button>
+
+    <div class="reader-tips">
+      <h3>How to use</h3>
+      <ul>
+        <li><strong>Tap</strong> any word to see its definition</li>
+        <li><strong>Double-tap</strong> to add a word to your review deck</li>
+        <li>Your progress is saved automatically</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Reading content -->
+  <div class="reader-content" id="reader-content">
+    <div class="reader-stats" id="reader-stats">
+      <div class="reader-stat">
+        <span>Words:</span>
+        <span class="reader-stat-num" id="stat-words">0</span>
+      </div>
+      <div class="reader-stat">
+        <span>Looked up:</span>
+        <span class="reader-stat-num" id="stat-lookups">0</span>
+      </div>
+      <div class="reader-stat">
+        <span>Added:</span>
+        <span class="reader-stat-num" id="stat-added">0</span>
+      </div>
+    </div>
+    <div class="reader-text-area">
+      <div class="reader-text" id="reader-text"></div>
+    </div>
+  </div>
+
+  <!-- Word popup -->
+  <div class="reader-popup" id="word-popup">
+    <div class="reader-popup-header">
+      <div>
+        <div class="reader-popup-word" id="popup-word"></div>
+        <div class="reader-popup-reading" id="popup-reading"></div>
+      </div>
+      <button class="reader-popup-close" onclick="closePopup()">×</button>
+    </div>
+    <div class="reader-popup-gloss" id="popup-gloss"></div>
+    <div class="reader-popup-actions">
+      <button class="reader-popup-btn reader-popup-btn-secondary" onclick="speakWord()">🔊 Listen</button>
+      <button class="reader-popup-btn reader-popup-btn-primary" id="popup-add-btn" onclick="addToReview()">+ Add to Review</button>
+    </div>
+  </div>
+</div>
+
+<script src="gen-dict.js?v=1"></script>
+<script src="mobile-lookup.js?v=3"></script>
+<script>
+  // State
+  let readerText = '';
+  let lookupCount = 0;
+  let addedCount = 0;
+  let currentWord = null;
+  let lastTapTime = 0;
+
+  // Load saved text from localStorage
+  document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('ptw-reader-text');
+    if (saved) {
+      document.getElementById('reader-input').value = saved;
+    }
+
+    // Check dictionary status
+    updateDictStatus();
+  });
+
+  function updateDictStatus() {
+    const btn = document.getElementById('dict-status-btn');
+    if (window.ptwMobileLookup && window.ptwMobileLookup.isLoaded()) {
+      btn.textContent = 'Loaded';
+      btn.classList.add('active');
+    }
+  }
+
+  async function loadDictionary() {
+    const btn = document.getElementById('dict-status-btn');
+    if (window.ptwMobileLookup.isLoaded()) return;
+
+    btn.textContent = 'Loading...';
+    btn.disabled = true;
+
+    try {
+      await window.ptwMobileLookup.load((status) => {
+        btn.textContent = status;
+      });
+      btn.textContent = 'Loaded';
+      btn.classList.add('active');
+    } catch (e) {
+      btn.textContent = 'Error';
+      console.error(e);
+    }
+    btn.disabled = false;
+  }
+
+  function startReading() {
+    const input = document.getElementById('reader-input');
+    const text = input.value.trim();
+
+    if (!text) {
+      alert('Please paste some Japanese text first');
+      return;
+    }
+
+    // Save to localStorage
+    localStorage.setItem('ptw-reader-text', text);
+    readerText = text;
+
+    // Process and display text
+    displayText(text);
+
+    // Show reading view
+    document.getElementById('input-section').style.display = 'none';
+    document.getElementById('reader-content').classList.add('active');
+    document.getElementById('clear-btn').style.display = 'block';
+    document.getElementById('reader-progress').style.display = 'block';
+
+    // Update stats
+    updateStats();
+  }
+
+  // Reader Mode's whole promise is "tap any word". This used to accumulate
+  // every consecutive CJK/kana character into ONE span, breaking only at
+  // punctuation and whitespace -- so a Japanese clause became a single
+  // tappable blob and tapping it looked the entire clause up in JMdict, which
+  // answered with whatever unrelated entry happened to match a fragment
+  // (昨日は友達と公園で美味しいパンを食べました returned "と -- if; when").
+  // mobile-lookup.js already exports a working segmenter; use it.
+  const PARTICLES = new Set(['は','が','を','に','へ','で','と','も','や','か','ね','よ','の','さ','ば','ぞ','な','ん']);
+
+  function displayText(text) {
+    const container = document.getElementById('reader-text');
+    const segments = (window.ptwMobileLookup && window.ptwMobileLookup.segment)
+      ? window.ptwMobileLookup.segment(text)
+      : [{ text, type: 'other' }];
+
+    let html = '';
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+      if (seg.type === 'other') {
+        html += seg.text === '\n' ? '<br>' : escapeHtml(seg.text);
+        continue;
+      }
+      // A kanji run followed immediately by kana is nearly always one word
+      // with its okurigana (食 + べました), and neither half is a dictionary
+      // entry on its own. Offer the joined form as the lookup key; the popup
+      // falls back to the run alone when the join isn't a real word, so
+      // particles that merely follow a noun (公園 + で) still resolve.
+      // Both halves of the join carry it, so tapping the okurigana tail of
+      // 食べました answers 食べる rather than べた ("all over; solid"). A
+      // single-kana run that is a common particle is excluded: は, と, で and
+      // を are words in their own right, and inheriting the join backwards
+      // turned 公園 + で into "図書館" and 今日 + は into "hello".
+      let lookupKey = seg.text;
+      const next = segments[i + 1];
+      const prev = segments[i - 1];
+      const isParticle = seg.text.length === 1 && PARTICLES.has(seg.text);
+      if (seg.type === 'cjk' && next && next.type === 'hiragana') {
+        lookupKey = seg.text + next.text;
+      } else if (seg.type === 'hiragana' && prev && prev.type === 'cjk' && !isParticle) {
+        lookupKey = prev.text + seg.text;
+      }
+      html += `<span class="reader-word" data-word="${escapeAttr(seg.text)}"`
+            + (lookupKey !== seg.text ? ` data-join="${escapeAttr(lookupKey)}"` : '')
+            + `>${escapeHtml(seg.text)}</span>`;
+    }
+
+    container.innerHTML = html;
+
+    // Add click handlers
+    container.querySelectorAll('.reader-word').forEach(el => {
+      el.addEventListener('click', handleWordClick);
+    });
+  }
+
+  function getCharType(char) {
+    const code = char.charCodeAt(0);
+    if (code >= 0x3041 && code <= 0x3096) return 'hiragana';
+    if (code >= 0x30A1 && code <= 0x30F6) return 'katakana';
+    if (code >= 0x4E00 && code <= 0x9FFF) return 'cjk';
+    if (code >= 0x3400 && code <= 0x4DBF) return 'cjk';
+    return 'other';
+  }
+
+  function handleWordClick(e) {
+    const word = e.target.dataset.word;
+    const now = Date.now();
+
+    // Check for double-tap
+    if (now - lastTapTime < 300 && currentWord === word) {
+      addToReview();
+      lastTapTime = 0;
+      return;
+    }
+
+    lastTapTime = now;
+    lookupWord(word, e.target);
+  }
+
+  async function lookupWord(word, element) {
+    currentWord = word;
+
+    // Clear previous selection
+    document.querySelectorAll('.reader-word.selected').forEach(el => {
+      el.classList.remove('selected');
+    });
+    element.classList.add('selected');
+
+    // Show popup
+    const popup = document.getElementById('word-popup');
+    document.getElementById('popup-word').textContent = word;
+    document.getElementById('popup-reading').textContent = '';
+    document.getElementById('popup-gloss').textContent = 'Looking up...';
+
+    popup.classList.add('open');
+    lookupCount++;
+    updateStats();
+
+    // Try dictionary lookup
+    if (window.ptwMobileLookup) {
+      if (!window.ptwMobileLookup.isLoaded()) {
+        document.getElementById('popup-gloss').innerHTML = `
+          <div style="text-align: center;">
+            <p>Dictionary not loaded</p>
+            <button class="reader-btn" style="margin-top: 8px;" onclick="loadDictionaryAndRetryLookup('${escapeAttr(word)}')">
+              Load Dictionary
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // Prefer the kanji-run + okurigana join set up by displayText (食 +
+      // べました -> 食べました, which deinflects to 食べる). Neither half is a
+      // dictionary entry alone, but a particle that merely follows a noun
+      // (公園 + で) produces no join hit, so the run itself still answers.
+      const join = element.dataset.join;
+      let results = join ? window.ptwMobileLookup.lookup(join) : [];
+      let matched = join;
+      if (!results.length) {
+        results = window.ptwMobileLookup.lookup(word);
+        matched = word;
+      }
+      if (results.length > 0) {
+        const entry = results[0];
+        document.getElementById('popup-word').textContent = entry.headword || matched;
+        document.getElementById('popup-reading').textContent = entry.reading || '';
+        const gloss = Array.isArray(entry.gloss) ? entry.gloss.join('; ') : entry.gloss;
+        document.getElementById('popup-gloss').textContent = gloss || 'No definition found';
+      } else {
+        document.getElementById('popup-gloss').textContent = 'No definition found';
+      }
+    }
+  }
+
+  async function loadDictionaryAndRetryLookup(word) {
+    document.getElementById('popup-gloss').textContent = 'Loading dictionary...';
+    try {
+      await window.ptwMobileLookup.load();
+      const element = document.querySelector(`.reader-word[data-word="${word}"]`);
+      if (element) lookupWord(word, element);
+    } catch (e) {
+      document.getElementById('popup-gloss').textContent = 'Failed to load dictionary';
+    }
+  }
+
+  function closePopup() {
+    document.getElementById('word-popup').classList.remove('open');
+    document.querySelectorAll('.reader-word.selected').forEach(el => {
+      el.classList.remove('selected');
+    });
+    currentWord = null;
+  }
+
+  function speakWord() {
+    if (currentWord && 'speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(currentWord);
+      utterance.lang = 'ja-JP';
+      utterance.rate = 0.9;
+      speechSynthesis.speak(utterance);
+    }
+  }
+
+  async function addToReview() {
+    if (!currentWord) return;
+
+    const btn = document.getElementById('popup-add-btn');
+
+    // Check if user is logged in
+    const user = await getCurrentUser();
+    if (!user) {
+      btn.textContent = 'Log in to save';
+      btn.style.color = '#a87c1a';
+      setTimeout(() => {
+        btn.textContent = '+ Add to Review';
+        btn.style.color = '';
+      }, 2000);
+      // Still save locally as fallback
+      saveWordLocally(currentWord);
+      return;
+    }
+
+    // Reader Mode is for Japanese text, so pair is JA_EN
+    const pair = 'JA_EN';
+
+    // Use the word itself as item_key for dictionary words
+    // (not a curated concept, so no concept_id)
+    const itemKey = currentWord;
+
+    // Check if already in review via the SRS system
+    if (typeof isInReview === 'function' && isInReview(itemKey, pair)) {
+      btn.textContent = 'Already in deck';
+      btn.style.color = '#1a7a4c';
+      setTimeout(() => {
+        btn.textContent = '+ Add to Review';
+        btn.style.color = '';
+      }, 1500);
+      return;
+    }
+
+    btn.textContent = 'Adding...';
+    btn.disabled = true;
+
+    try {
+      // Add to SRS via the progress table
+      // For dictionary words: use item_key (the word), no concept_id
+      const state = {
+        ease_factor: 2.5,
+        interval_days: 0,
+        review_count: 0,
+        next_review_date: new Date().toISOString().slice(0, 10),
+        last_reviewed: new Date().toISOString()
+      };
+
+      // Save to Supabase progress table
+      const { error } = await supabaseClient
+        .from('progress')
+        .upsert({
+          user_id: user.id,
+          item_key: itemKey,
+          pair: pair,
+          ...state
+        }, { onConflict: 'user_id,pair,item_key' });
+
+      if (error) throw error;
+
+      // Mark the word as added in UI
+      document.querySelectorAll(`.reader-word[data-word="${currentWord}"]`).forEach(el => {
+        el.classList.add('added');
+      });
+
+      addedCount++;
+      updateStats();
+
+      btn.textContent = 'Added!';
+      btn.style.color = '#1a7a4c';
+
+    } catch (err) {
+      console.warn('Failed to add to review (offline?):', err.message);
+      // Save locally as fallback
+      saveWordLocally(currentWord);
+      btn.textContent = 'Saved locally';
+      btn.style.color = '#a87c1a';
+    }
+
+    setTimeout(() => {
+      btn.textContent = '+ Add to Review';
+      btn.style.color = '';
+      btn.disabled = false;
+    }, 1500);
+  }
+
+  function saveWordLocally(word) {
+    const added = JSON.parse(localStorage.getItem('ptw-reader-added') || '[]');
+    if (!added.includes(word)) {
+      added.push(word);
+      localStorage.setItem('ptw-reader-added', JSON.stringify(added));
+    }
+    // Mark as added in UI
+    document.querySelectorAll(`.reader-word[data-word="${word}"]`).forEach(el => {
+      el.classList.add('added');
+    });
+    addedCount++;
+    updateStats();
+  }
+
+  function updateStats() {
+    const words = document.querySelectorAll('.reader-word').length;
+    document.getElementById('stat-words').textContent = words;
+    document.getElementById('stat-lookups').textContent = lookupCount;
+    document.getElementById('stat-added').textContent = addedCount;
+  }
+
+  function clearReader() {
+    if (confirm('Clear the current text?')) {
+      localStorage.removeItem('ptw-reader-text');
+      document.getElementById('reader-input').value = '';
+      document.getElementById('reader-text').innerHTML = '';
+      document.getElementById('input-section').style.display = 'block';
+      document.getElementById('reader-content').classList.remove('active');
+      document.getElementById('clear-btn').style.display = 'none';
+      document.getElementById('reader-progress').style.display = 'none';
+      closePopup();
+      lookupCount = 0;
+      addedCount = 0;
+    }
+  }
+
+  function toggleSettings() {
+    document.getElementById('settings-panel').classList.toggle('open');
+  }
+
+  function updateFontSize(size) {
+    document.querySelector('.reader-text').style.fontSize = size + 'px';
+    localStorage.setItem('ptw-reader-font-size', size);
+  }
+
+  function updateLineHeight(height) {
+    document.querySelector('.reader-text').style.lineHeight = height;
+    localStorage.setItem('ptw-reader-line-height', height);
+  }
+
+  // Update progress on scroll
+  window.addEventListener('scroll', () => {
+    const content = document.getElementById('reader-content');
+    if (!content.classList.contains('active')) return;
+
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    document.getElementById('progress-bar').style.width = progress + '%';
+  });
+
+  // Close popup on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.reader-popup') && !e.target.closest('.reader-word')) {
+      closePopup();
+    }
+    if (!e.target.closest('.reader-settings') && !e.target.closest('#settings-btn')) {
+      document.getElementById('settings-panel').classList.remove('open');
+    }
+  });
+
+  // Helpers
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function escapeAttr(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // Load saved settings
+  const savedFontSize = localStorage.getItem('ptw-reader-font-size');
+  const savedLineHeight = localStorage.getItem('ptw-reader-line-height');
+  if (savedFontSize) {
+    document.getElementById('font-size-slider').value = savedFontSize;
+    document.querySelector('.reader-text').style.fontSize = savedFontSize + 'px';
+  }
+  if (savedLineHeight) {
+    document.getElementById('line-height-slider').value = savedLineHeight;
+    document.querySelector('.reader-text').style.lineHeight = savedLineHeight;
+  }
+
+  // Restore reading position if there was saved text
+  window.addEventListener('load', () => {
+    const saved = localStorage.getItem('ptw-reader-text');
+    if (saved) {
+      // Auto-start reading if there's saved text
+      setTimeout(() => {
+        const input = document.getElementById('reader-input');
+        if (input.value === saved) {
+          startReading();
+        }
+      }, 100);
+    }
+  });
+</script>
+
+</body>
+</html>

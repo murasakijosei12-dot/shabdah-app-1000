@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shabdah — Executive Digital Email Signature</title>
+  <style>
+    :root {
+      --primary: #0d9488;
+      --primary-dark: #0f766e;
+      --slate-900: #0f172a;
+      --slate-700: #334155;
+      --slate-500: #64748b;
+      --slate-100: #f1f5f9;
+      --slate-50: #f8fafc;
+      --border: #e2e8f0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      margin: 0;
+      padding: 40px 20px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+      color: white;
+      padding: 32px 40px;
+    }
+    .header h1 {
+      margin: 0 0 8px 0;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .header p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 15px;
+    }
+    .content {
+      padding: 40px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--slate-900);
+      margin: 0 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .preview-card {
+      background: #ffffff;
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: var(--slate-100);
+      color: var(--slate-700);
+    }
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+    .instructions-card {
+      background: var(--slate-50);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+    }
+    .instructions-card ol {
+      margin: 12px 0 0 0;
+      padding-left: 20px;
+    }
+    .instructions-card li {
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: var(--slate-700);
+    }
+    .instructions-card li strong {
+      color: var(--slate-900);
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+      z-index: 1000;
+    }
+    .feature-tags {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .tag {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>Shabdah — Executive Digital Email Signature</h1>
+      <p>Simplified institutional signature: logo + name only, no product scope revealed yet. Formatted for Gmail, Outlook, Apple Mail, and mobile clients.</p>
+    </div>
+
+    <div class="content">
+      <div class="section-title">
+        <span>Live Visual Preview</span>
+      </div>
+
+      <!-- VISUAL SIGNATURE CONTAINER (TABLE FORMATTED FOR EMAIL CLIENT COMPATIBILITY) -->
+      <div class="preview-card" id="signatureContainer">
+        <table cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.45; color: #334155; max-width: 560px;">
+          <tr>
+            <td style="padding-bottom: 14px;">
+              <img src="https://murasakijosei12-dot.github.io/shabdah-demo-100-fronts/assets/icons/shabdah-horizontal-logo.png" alt="Shabdah" width="220" height="63" style="display: block; border: 0;" />
+            </td>
+          </tr>
+          <tr>
+            <td style="border-top: 2px solid #0d9488; padding-top: 14px;">
+              <table cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-size: 16px; font-weight: 700; color: #0f172a; letter-spacing: -0.2px;">
+                    Simone Sarma
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size: 13px; font-weight: 600; color: #0d9488; padding-top: 2px; padding-bottom: 12px;">
+                    Founder &amp; Principal Architect, Shabdah
+                  </td>
+                </tr>
+
+                <!-- Institutional / Regulatory Credentials -->
+                <tr>
+                  <td style="font-size: 11px; color: #475569; line-height: 1.5;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 10px; width: 100%;">
+                      <tr>
+                        <td style="font-size: 11px; color: #334155;">
+                          <strong>Government of India Registered Enterprise</strong>
+                          <span style="color: #94a3b8;">•</span>
+                          Udyam-Registered Micro Enterprise
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 10.5px; color: #64748b; font-family: monospace; padding-top: 2px;">
+                          Udyam Registration No.: <strong>UDYAM-AS-03-0100889</strong>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Legal / Confidentiality Footer -->
+                <tr>
+                  <td style="padding-top: 10px; font-size: 10px; color: #94a3b8; line-height: 1.4;">
+                    <em>Notice: This communication contains proprietary information intended solely for the designated recipient. If received in error, please notify the sender and discard immediately.</em>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="action-bar">
+        <button class="btn btn-primary" onclick="copySignature()">
+          📋 Copy Formatted Signature (One-Click)
+        </button>
+        <button class="btn btn-secondary" onclick="copyRawHTML()">
+          &lt;/&gt; Copy Raw HTML Code
+        </button>
+        <a href="https://mail.google.com/mail/u/0/#settings/general" target="_blank" class="btn btn-secondary">
+          ⚙️ Open Gmail Signature Settings
+        </a>
+      </div>
+
+      <div class="feature-tags">
+        <span class="tag">✓ No product scope revealed</span>
+        <span class="tag">✓ No website or email link</span>
+        <span class="tag">✓ Udyam Registration Badged</span>
+        <span class="tag">✓ Outlook &amp; Gmail Compatible</span>
+      </div>
+
+      <!-- INSTRUCTIONS -->
+      <div class="instructions-card" style="margin-top: 32px;">
+        <div class="section-title" style="font-size: 16px; margin-bottom: 8px;">
+          <span>How to Set This in Gmail (30 Seconds)</span>
+        </div>
+        <ol>
+          <li>Click the green <strong>"Copy Formatted Signature"</strong> button above.</li>
+          <li>Click <strong>"Open Gmail Signature Settings"</strong> (or go to Gmail ⚙️ Settings &rarr; <em>See all settings</em> &rarr; <em>General</em> &rarr; scroll to <strong>Signature</strong>).</li>
+          <li>Click <strong>"+ Create new"</strong>, name it <code>Shabdah Official</code>, and press <kbd>Cmd + V</kbd> (Mac) or <kbd>Ctrl + V</kbd> (Windows) directly into the signature box.</li>
+          <li>Under <strong>Signature defaults</strong>, select <code>Shabdah Official</code> for both <em>"For new emails use"</em> and <em>"On reply/forward use"</em>.</li>
+          <li>Scroll to the very bottom of the page and click <strong>Save Changes</strong>.</li>
+        </ol>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Signature copied to clipboard! Ready to paste into Gmail.</div>
+
+  <script>
+    function copySignature() {
+      const container = document.getElementById('signatureContainer');
+      const htmlContent = container.innerHTML;
+      const textContent = container.innerText;
+
+      if (navigator.clipboard && window.ClipboardItem) {
+        const blobHtml = new Blob([htmlContent], { type: 'text/html' });
+        const blobText = new Blob([textContent], { type: 'text/plain' });
+        const item = new ClipboardItem({
+          'text/html': blobHtml,
+          'text/plain': blobText
+        });
+
+        navigator.clipboard.write([item]).then(() => {
+          showToast('✓ Rich formatted signature copied! Paste directly into Gmail settings.');
+        }).catch(err => {
+          fallbackCopy(container);
+        });
+      } else {
+        fallbackCopy(container);
+      }
+    }
+
+    function fallbackCopy(container) {
+      const range = document.createRange();
+      range.selectNode(container);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      document.execCommand('copy');
+      window.getSelection().removeAllRanges();
+      showToast('✓ Signature copied! Paste directly into Gmail.');
+    }
+
+    function copyRawHTML() {
+      const container = document.getElementById('signatureContainer');
+      navigator.clipboard.writeText(container.innerHTML.trim()).then(() => {
+        showToast('✓ Raw HTML code copied to clipboard!');
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3500);
+    }
+  </script>
+</body>
+</html>

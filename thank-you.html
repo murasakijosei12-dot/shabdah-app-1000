@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thank you — Shabdah</title>
+
+  <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Not indexed: this page only makes sense arriving from a checkout. -->
+  <meta name="robots" content="noindex">
+
+  <link rel="stylesheet" href="styles.css">
+
+
+  <!-- Supabase (CDN version - no build step / npm needed) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    // Global Supabase connection, used by auth.js and the account dropdown.
+    const SUPABASE_URL = "https://pqdrtqnmfzgnrderwrzl.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yAeNx_8QM8zLa26fQw_wMw_jelTeQep";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  </script>
+  <style>
+    /* Inline fallback so this can't break if styles.css is stale/uncached */
+    #auth-overlay { display: none; position: fixed; inset: 0; z-index: 560;
+      background: rgba(12,56,70,.55); align-items: center; justify-content: center; }
+    #auth-overlay.open { display: flex; }
+    #review-overlay { display: none; position: fixed; inset: 0; z-index: 560;
+      background: rgba(12,56,70,.55); align-items: center; justify-content: center; }
+    #review-overlay.open { display: flex; }
+    #review-box { position: relative; background: #fff; border-radius: 16px;
+      max-width: 420px; width: 90%; padding: 32px; text-align: center; }
+    #review-card-area img { max-width: 100%; border-radius: 10px; cursor: pointer; }
+    #review-controls button { padding: 10px 20px; margin: 0 6px; border-radius: 8px;
+      border: none; font-weight: 600; cursor: pointer; }
+    .review-btn-again { background: #f4d4d0; color: #8a2e20; }
+    .review-btn-good { background: #cfe8d8; color: #1a5c33; }
+    #review-card-area img.review-crop-front { clip-path: inset(0 0 14% 0); }
+  </style>
+  <style>
+    .ty-wrap { max-width: 640px; margin: 0 auto; padding: 56px 20px 80px; }
+    .ty-card { border: 1px solid rgba(0,0,0,.12); border-radius: 12px; padding: 30px 28px; }
+    .ty-status { display: flex; align-items: flex-start; gap: 14px; }
+    .ty-dot {
+      flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%;
+      border: 3px solid rgba(0,0,0,.15); border-top-color: rgba(0,0,0,.55);
+      animation: ty-spin .9s linear infinite; margin-top: 3px;
+    }
+    @keyframes ty-spin { to { transform: rotate(360deg); } }
+    .ty-dot.done { animation: none; border: none; background: #1e7a4b; position: relative; }
+    .ty-dot.done::after {
+      content: ''; position: absolute; left: 7px; top: 3px; width: 6px; height: 11px;
+      border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg);
+    }
+    .ty-dot.slow { animation: none; border: none; background: #b8860b; }
+    .ty-h { margin: 0 0 6px; font-size: 1.15rem; }
+    .ty-sub { margin: 0; line-height: 1.6; }
+    .ty-actions { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .ty-meta { margin-top: 22px; font-size: .9rem; line-height: 1.6; opacity: .8; }
+    .ty-hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ AUTH OVERLAY ═══════════ -->
+<div id="auth-overlay" onclick="if(event.target===this)closeAuth()">
+  <div class="info-box" onclick="event.stopPropagation()" style="max-width:340px;">
+    <button class="focus-close" onclick="closeAuth()" aria-label="Close">✕</button>
+    <div class="auth-tabs" style="display:flex; gap:8px; margin-bottom:14px;">
+      <button id="auth-tab-login" class="nav-info-link" onclick="setAuthTab('login')">Log In</button>
+      <button id="auth-tab-signup" class="nav-info-link" onclick="setAuthTab('signup')">Sign Up</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <input id="auth-form-email" type="email" placeholder="Email" autocomplete="email">
+      <input id="auth-form-password" type="password" placeholder="Password" autocomplete="current-password">
+      <button id="auth-submit-btn" onclick="submitAuthForm()">Log In</button>
+      <div id="auth-message" style="font-size:13px; min-height:18px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ REVIEW OVERLAY ═══════════ -->
+<div id="review-overlay" onclick="if(event.target===this)closeReview()">
+  <div id="review-box" onclick="event.stopPropagation()">
+    <button class="focus-close" onclick="closeReview()" aria-label="Close">✕</button>
+    <div id="review-progress" style="font-size:13px; opacity:.7; margin-bottom:10px;"></div>
+    <div id="review-card-area"></div>
+    <div id="review-controls" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<!-- ═══════════ MY NOTES OVERLAY ═══════════ -->
+<div id="notes-overlay" onclick="if(event.target===this)closeMyNotes()">
+  <div class="info-box" onclick="event.stopPropagation()" style="max-width:520px;">
+    <button class="focus-close" onclick="closeMyNotes()" aria-label="Close">✕</button>
+    <h3 style="margin-bottom:14px;">My Notes</h3>
+    <div id="notes-list-content"></div>
+  </div>
+</div>
+
+<!-- ═══════════ MY ACCOUNT OVERLAY ═══════════ -->
+<div id="account-overlay" onclick="if(event.target===this)closeMyAccount()">
+  <div class="info-box" onclick="event.stopPropagation()" style="max-width:520px;">
+    <button class="focus-close" onclick="closeMyAccount()" aria-label="Close">✕</button>
+    <div id="account-tab-body"></div>
+  </div>
+</div>
+
+<header class="ptw-page-header">
+  <a href="index.html">
+    <img class="ptw-header-logo" src="assets/icons/shabdah-logo.png" alt="Shabdah logo">
+  </a>
+</header>
+
+<nav class="home-nav">
+  <a class="nav-brand" href="index.html" style="text-decoration:none;">
+    <img class="nav-logo" src="assets/icons/shabdah-logo.png" alt="Shabdah logo">
+    <span class="nav-brand-name">Shabdah</span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-info-link" href="how-to-use.html">How it works</a>
+    <a class="nav-info-link" href="pricing.html">Pricing</a>
+    <a class="nav-info-link" href="about.html">About</a>
+  </div>
+  <div class="nav-spacer"></div>
+  <div class="nav-right">
+    <a class="nav-cta" href="index.html">Browse the dictionary</a>
+  <div class="auth-nav-area"></div>
+  </div>
+</nav>
+
+<main class="ty-wrap">
+
+  <h1 style="margin-top:0;">Thank you.</h1>
+  <p style="line-height:1.65;" id="ty-receipt-note">
+    Your payment went through. Paddle has emailed your receipt &mdash; it may take a
+    minute to arrive, and it will come from Paddle rather than from us, since they
+    handle payments for Shabdah.
+  </p>
+
+  <div class="ty-card">
+    <div class="ty-status">
+      <div class="ty-dot" id="ty-dot"></div>
+      <div>
+        <h2 class="ty-h" id="ty-head">Unlocking your library&hellip;</h2>
+        <p class="ty-sub" id="ty-sub">
+          This usually takes a few seconds. You don't need to do anything.
+        </p>
+      </div>
+    </div>
+
+    <div class="ty-actions ty-hidden" id="ty-actions">
+      <a class="btn-primary" href="index.html" style="text-decoration:none;">Start learning</a>
+      <a class="nav-info-link" href="how-to-use.html">How to use Shabdah</a>
+    </div>
+  </div>
+
+  <p class="ty-meta">
+    Your purchase is tied to your account, so it follows you to any device you log
+    in on. Changed your mind? You have 14&nbsp;days
+    &mdash; ask through the <a href="contact.html">contact form</a> and we'll refund
+    you, no reason needed.
+  </p>
+
+</main>
+
+
+
+<!-- PTW-AUTH-INJECT start: Supabase client required by the checkout gate -->
+<!-- Supabase is already initialised in <head> (same URL, key and client).
+     A second identical block was injected here by the auth-inject pass; its
+     duplicate `const SUPABASE_URL` threw "Identifier already declared",
+     killing this whole script block on every load of this page. Removed --
+     the window export below still works, since the head block's
+     supabaseClient is in scope. -->
+<script>
+  try { window.supabaseClient = supabaseClient; } catch (e) {}
+</script>
+<!-- PTW-AUTH-INJECT end -->
+
+<script src="pricing-config.js?v=3"></script>
+<script>
+/* Wait for the entitlement to appear.
+
+   The purchase is granted asynchronously: Paddle notifies our webhook, which
+   writes the entitlement to the database. That is normally near-instant, but
+   it is NOT guaranteed to have finished by the time the buyer lands here. So
+   this polls rather than assuming.
+
+   The important part is what happens when it does not arrive. The money has
+   already left their account, so the page must never suggest something went
+   wrong or that they should pay again. After 25 seconds it says the payment
+   is safe and tells them how to reach a human. */
+
+const TY_POLL_MS = 2000;
+const TY_GIVE_UP_MS = 25000;
+
+const dot = document.getElementById('ty-dot');
+const head = document.getElementById('ty-head');
+const sub = document.getElementById('ty-sub');
+const actions = document.getElementById('ty-actions');
+
+// Which gateway actually took the payment -- openPaddleCheckout()'s successUrl
+// and openRazorpayCheckout()'s handler (both in pricing-config.js) each tag
+// their redirect with ?gw=, since this page used to say "Paddle has emailed
+// your receipt" unconditionally, which was simply wrong for every Razorpay
+// (India) buyer. No param (an old/bookmarked link, or direct navigation)
+// falls back to the original Paddle wording already in the HTML.
+const receiptNote = document.getElementById('ty-receipt-note');
+if (receiptNote && new URLSearchParams(location.search).get('gw') === 'razorpay') {
+  receiptNote.textContent =
+    'Your payment went through. Razorpay has emailed you a payment confirmation -- ' +
+    'it may take a minute to arrive.';
+}
+
+function tyConfirmed(pairs) {
+  dot.classList.remove('slow');
+  dot.classList.add('done');
+  head.textContent = 'Your library is unlocked.';
+
+  // Only the pairs still actually on sale (PTW_PAIRS, from pricing-config.js)
+  // get a name -- and a legacy entitlement row from before the 2026-09-16
+  // scope trim (EN_JA, FR_JA, HI_JA, ...) is dropped rather than shown as a
+  // raw code. An account that was backfilled with every old pair combination
+  // used to produce "EN_JA and FR_JA and EN_HI and HI_JA and ..." here.
+  const names = pairs
+    .map(id => (typeof PTW_PAIRS !== 'undefined') && PTW_PAIRS.find(x => x.id === id))
+    .filter(Boolean)
+    .map(p => p.name);
+
+  sub.textContent = names.length
+    ? `${names.join(' and ')} — all 5,000 concepts, no limit, on this account.`
+    : 'All 5,000 concepts are now available on this account.';
+
+  actions.classList.remove('ty-hidden');
+}
+
+function tySlow() {
+  dot.classList.add('slow');
+  head.textContent = 'Payment received.';
+  sub.innerHTML =
+    'Your payment is safe and your receipt is on its way. Activation is taking '
+    + 'longer than usual &mdash; it will finish on its own, so please don\'t pay again. '
+    + 'If your library still looks locked in a few minutes, get in touch via the '
+    + '<a href="contact.html">contact form</a> and we\'ll sort it out by hand.';
+  actions.classList.remove('ty-hidden');
+}
+
+(async function tyPoll() {
+  const started = Date.now();
+
+  while (Date.now() - started < TY_GIVE_UP_MS) {
+    let pairs = [];
+    try {
+      pairs = await ptwGetEntitlements();
+    } catch (e) { /* keep waiting -- a failed read is not a failed payment */ }
+
+    if (pairs && pairs.length) { tyConfirmed(pairs); return; }
+    await new Promise(r => setTimeout(r, TY_POLL_MS));
+  }
+
+  tySlow();
+})();
+</script>
+
+<script src="auth.js?v=9"></script>
+<script src="nav-data.js?v=2"></script>
+<script src="entitlement.js?v=9"></script>
+<script src="notes.js?v=8"></script>
+<script src="account.js?v=9"></script>
+<script src="srs.js?v=8"></script>
+</body>
+</html>
